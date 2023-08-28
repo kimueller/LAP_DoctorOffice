@@ -1,0 +1,57 @@
+﻿@page "/"
+@page "/treatment"
+
+<PageTitle></PageTitle>
+
+@using TestigerTest.Data
+@using TestigerTest.Data.Models
+@using TestigerTest.Services
+@inject IOfficeService officeService
+@inject NavigationManager navMan
+
+<h1>Treatment overview</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+@if (treatments == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Doctor</th>
+                <th>Patient</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var treatment in treatments)
+            {
+                <tr>
+                    <td>@treatment.Doctor.Email</td>
+                    <td>@treatment.Patient.FirstName @treatment.Patient.LastName</td>
+                    <td>@treatment.Date.ToShortDateString()</td>
+                    <td><btn class="btn btn-primary" @onclick="() => OpenTreatment(treatment)">▶</btn></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Treatment> treatments;
+
+    protected override void OnInitialized()
+    {
+        treatments = officeService.GetTreatments();
+    }
+
+    private void OpenTreatment(Treatment treatment)
+    {
+        navMan.NavigateTo("/treatment/" + treatment.TreatmentID.ToString(), true);
+    }
+}

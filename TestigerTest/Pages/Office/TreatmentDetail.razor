@@ -1,0 +1,118 @@
+﻿@page "/treatment/{treatmentID}"
+
+<PageTitle></PageTitle>
+
+@using TestigerTest.Data
+@using TestigerTest.Data.Models
+@using TestigerTest.Services
+@inject IOfficeService officeService
+@inject NavigationManager navMan
+
+<h1>Treatment overview</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Doctor</th>
+                <th>Patient</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+           
+                <tr>
+                    <td>@treatment.Doctor.Email</td>
+                    <td>@treatment.Patient.FirstName @treatment.Patient.LastName</td>
+                    <td>@treatment.Date.ToShortDateString()</td>
+                </tr>
+         
+        </tbody>
+    </table>
+
+    <h2>Articles</h2>
+        <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var givenArticle in givenArticles)
+            {
+                <tr>
+                    <td>@givenArticle.Article.ArticleName</td>
+                    <td>@givenArticle.Amount</td>
+                    <td><button class="btn btn-danger" @onclick="() => DeleteArticle(givenArticle)">🗑️</button></td>
+                </tr>
+            }
+        </tbody>
+    </table
+    
+
+    @if(articles.Count != 0)
+{
+
+    <br />
+    <h2>Add Article</h2>
+    <EditForm Model="@article" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class="form-group">
+                <label>Article</label>
+                     <ValidationMessage For="@(() => article.ArticleID)" />
+
+        <InputSelect @bind-Value="@article.ArticleID" class="form-control">
+            @foreach(var article in articles)
+            {
+                <option value="@article.ArticleID">@article.ArticleName</option>
+            }
+            </InputSelect>
+    <br />
+    <label>Amount</label>
+         <ValidationMessage For="@(() => article.Amount)" />
+
+    <InputNumber @bind-Value="@article.Amount" class="form-control "></InputNumber>
+        </div>
+    <button class="btn btn-success">ADD</button>
+    </EditForm>
+}
+
+
+
+@code {
+    [Parameter]
+    public string treatmentID { get; set; }
+
+    private Treatment treatment;
+    private TreatmentArticle article = new TreatmentArticle();
+
+    private List<Article> articles;
+    private List<TreatmentArticle> givenArticles;
+
+    protected override void OnInitialized()
+    {
+        treatment = officeService.GetTreatmentByID(Convert.ToInt32(treatmentID));
+        articles = officeService.GetNotGivenArticles(treatment);
+        givenArticles = officeService.GetGivenArticles(treatment);
+
+    }
+
+    private void Submit()
+    {
+        article.TreatmentID = Convert.ToInt32(treatmentID);
+        officeService.AddArticle(article);
+        articles = officeService.GetNotGivenArticles(treatment);
+        givenArticles = officeService.GetGivenArticles(treatment);    }
+
+    private void DeleteArticle(TreatmentArticle article)
+    {
+        officeService.DeleteArticle(article);
+        articles = officeService.GetNotGivenArticles(treatment);
+        givenArticles = officeService.GetGivenArticles(treatment);
+    }
+}
